@@ -1,10 +1,16 @@
 .container {
   width: 100vw;
   height: 100vh;
+  background-color: #ebeff3;
+}
+
+.form__container {
+  height: calc(100% - 50px);
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #ebeff3;
+
   flex-direction: column;
 }
 
@@ -13,34 +19,16 @@
 }
 
 .url__form {
-  border-radius: 5px;
-  padding: 2rem;
   font-size: 1.8rem;
-  background-color: #e1e7eb;
+
   display: flex;
   flex-direction: column;
-width: clamp(300px, 70vw, 700px);
+  width: clamp(400px, 80vw, 700px);
 }
 
 .url__input {
-
+  width: 70%;
   border: 0;
   padding: 1rem;
   border-radius: 5px;
-}
-
-.submit__button {
-  align-self: center;
-  background-color: #00a7ca;
-  color: white;
-  font-size: 1.4rem;
-  border: 0;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-  border-radius: 5px;
-  padding: 1rem;
-}
-
-.container__text{
-  margin-top: 1rem;
 }
