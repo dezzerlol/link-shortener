@@ -1,7 +1,6 @@
 import { ActionIcon, Pagination, Table } from '@mantine/core'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { LinkType } from '../../pages'
 import fetcher from '../../services/fetcher'
@@ -9,9 +8,9 @@ import { getDate } from '../../services/getDate'
 
 const LinksTable = ({ links, setLinks }: { links: LinkType[]; setLinks: any }) => {
   const linksPerPage = 5
-  const { data: session } = useSession()
   const [portion, setPortion] = useState({ min: 0, max: 5 })
   const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
   let total = Math.ceil(links.length / linksPerPage)
 
   const handleRemove = async (linkId: any) => {
@@ -27,13 +26,16 @@ const LinksTable = ({ links, setLinks }: { links: LinkType[]; setLinks: any }) =
     setPortion({ min: indexOfFirstLink, max: indexOfLastLink })
   }
 
-  if (!session) {
-    return <div style={{ marginTop: '3rem' }}>Sign in to save your shortened links.</div>
-  }
+  useEffect(() => {
+    const getLinks = async () => {
+      setIsLoading(true)
+      const data = await fetcher('/get-user-links')
+      setLinks(data)
+      setIsLoading(false)
+    }
 
-  if (links.length === 0) {
-    return <div style={{ marginTop: '3rem' }}>No saved links...</div>
-  }
+    getLinks()
+  }, [])
 
   return (
     <>

@@ -6,7 +6,7 @@ import { MantineProvider } from '@mantine/core'
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <SessionProvider session={session}>
-      <MantineProvider withGlobalStyles>
+      <MantineProvider>
         <Component {...pageProps} />
       </MantineProvider>
     </SessionProvider>
@@ -14,3 +14,8 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
 }
 
 export default MyApp
+
+
+//BUG:
+// nextjs 12.2 styles from mantine flickering
+// downgrade to 12.1.6 => diff middleware should be used

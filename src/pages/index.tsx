@@ -1,12 +1,11 @@
-import { Box, Button, Popover, Text } from '@mantine/core'
+import { Box, Button, Input, Popover, Text, Title, Tooltip } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import type { NextPage } from 'next'
 import { useSession } from 'next-auth/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Header from '../components/Header/Header'
 import LinksTable from '../components/LinksTable/LinksTable'
 import fetcher from '../services/fetcher'
-import styles from '../styles/Home.module.css'
 
 export type LinkType = {
   createdAt: string
@@ -17,12 +16,13 @@ export type LinkType = {
 }
 
 const Home: NextPage = () => {
-  const largeScreen = useMediaQuery('(min-width: 1024px)')
-  const { data: session } = useSession()
+  const largeScreen = useMediaQuery('(min-width: 1024px)', false)
+  const { data: session, status } = useSession()
   const [url, setUrl] = useState('')
   const [shortenedUrl, setShortenedUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [links, setLinks] = useState<Array<LinkType>>([])
+  const [opened, setOpened] = useState(false)
 
   const handleSubmit = async () => {
     setIsLoading(true)
@@ -32,33 +32,37 @@ const Home: NextPage = () => {
     setShortenedUrl(`${window.location.origin}/${response.slug}`)
   }
 
-  const handleCopy = async () => {
+  const handleCopy = async (e: any) => {
+    setOpened(true)
     await navigator.clipboard.writeText(shortenedUrl)
+
+    setTimeout(() => {
+      setOpened(false)
+    }, 2000)
   }
 
-  useEffect(() => {
-    const getLinks = async () => {
-      if (session) {
-        const data = await fetcher('/get-user-links')
-        setLinks(data)
-      }
-    }
-
-    getLinks()
-  }, [session])
-
   return (
-    <div className={styles.container}>
+    <Box sx={{ width: '100vw', height: '100vh', backgroundColor: '#ebeff3' }}>
       <Header />
 
-      <div className={styles.form__container}>
-        <h1 className={styles.container__title}>Shorten your link:</h1>
-        <div className={styles.url__form}>
+      <Box
+        sx={{
+          height: 'calc(100% - 50px)',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+        }}>
+        <Title sx={{ color: '#00a7ca' }} order={1}>
+          Shorten your link:
+        </Title>
+        <Box sx={{ fontSize: '1.8rem', display: 'flex', flexDirection: 'column', width: 'clamp(400px, 80vw, 700px)' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', padding: '0.5rem' }}>
-            <input
+            <Input
               placeholder='Input your url...'
-              className={styles.url__input}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e: any) => setUrl(e.target.value)}
+              sx={{ width: '70%', border: 0, padding: '1rem', borderRadius: '5px' }}
             />
             <Button
               loading={isLoading}
@@ -71,27 +75,23 @@ const Home: NextPage = () => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', padding: '0.5rem' }}>
-            <input
+            <Input
               placeholder='Your shortened url'
-              className={styles.url__input}
               readOnly
               defaultValue={shortenedUrl}
+              sx={{ width: '70%', border: 0, padding: '1rem', borderRadius: '5px' }}
             />
 
-            <Popover width={110} position='bottom' withArrow shadow='md'>
-              <Popover.Target>
-                <Button size={largeScreen ? 'md' : 'xs'} ml='1rem' onClick={handleCopy} sx={{ width: '20%' }}>
-                  Copy
-                </Button>
-              </Popover.Target>
-              <Popover.Dropdown>
-                <Text size='sm'>URL copied</Text>
-              </Popover.Dropdown>
-            </Popover>
+            <Tooltip opened={opened} label='URL copied'>
+              <Button size={largeScreen ? 'md' : 'xs'} ml='1rem' onClick={handleCopy} sx={{ width: '20%' }}>
+                Copy
+              </Button>
+            </Tooltip>
           </Box>
-        </div>
-        <div
-          style={{
+        </Box>
+
+        <Box
+          sx={{
             height: '40%',
             display: 'flex',
             width: `${largeScreen ? '60%' : '100%'}`,
@@ -100,10 +100,10 @@ const Home: NextPage = () => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <LinksTable links={links} setLinks={setLinks} />
-        </div>
-      </div>
-    </div>
+          {status === 'authenticated' && <LinksTable links={links} setLinks={setLinks} />}
+        </Box>
+      </Box>
+    </Box>
   )
 }
 
