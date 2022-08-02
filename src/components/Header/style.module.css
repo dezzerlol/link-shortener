@@ -7,20 +7,3 @@
   padding-right: 2rem;
 }
 
-.container__text {
-  margin-top: 1rem;
-}
-
-.submit__button {
-  cursor: pointer;
-  width: 20%;
-  position: relative;
-  align-self: center;
-  background-color: #00a7ca;
-  color: white;
-  font-size: 1.2rem;
-  border: 0;
-  margin: 2rem 0 2rem 1rem;
-  border-radius: 5px;
-  padding: 1rem;
-}

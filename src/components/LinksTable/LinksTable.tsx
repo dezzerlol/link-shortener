@@ -39,7 +39,17 @@ const LinksTable = ({ links, setLinks }: { links: LinkType[]; setLinks: any }) =
 
   return (
     <>
-      <Table sx={{ width: '100%', tableLayout: 'fixed' }} fontSize='xs'>
+      <Table
+        sx={{
+          height: '80%',
+          width: '100%',
+          tableLayout: 'fixed',
+          backgroundColor: 'white',
+          borderRadius: '5px',
+          boxShadow:
+            '0 1px 3px rgb(0 0 0 / 5%), rgb(0 0 0 / 5%) 0px 20px 25px -5px, rgb(0 0 0 / 4%) 0px 10px 10px -5px',
+        }}
+        fontSize='xs'>
         <thead>
           <tr>
             <th>Link</th>
@@ -50,29 +60,35 @@ const LinksTable = ({ links, setLinks }: { links: LinkType[]; setLinks: any }) =
         </thead>
 
         <tbody>
-          {links.slice(portion.min, portion.max).map((link) => (
-            <tr key={link.id}>
-              <td style={{ overflow: 'hidden', wordWrap: 'break-word' }}>
-                <a href={link.url}>{link.url}</a>
-              </td>
-              <td style={{ overflow: 'hidden', wordWrap: 'break-word' }}>
-                <Link href={`${window.location.origin}/${link.slug}`}>
-                  <a rel='norefferer' target='_blank'>
-                    {window.location.origin}/{link.slug}
-                  </a>
-                </Link>
-              </td>
-              <td>{getDate(link.createdAt)}</td>
-              <td>
-                <ActionIcon variant='transparent' onClick={() => handleRemove(link.id)}>
-                  <IoClose />
-                </ActionIcon>
-              </td>
-            </tr>
-          ))}
+          {/* Sort array by date, slice to portion size and then map */}
+          {links
+            .sort((a, b) => {
+              return b.createdAt < a.createdAt ? -1 : b.createdAt > a.createdAt ? 1 : 0
+            })
+            .slice(portion.min, portion.max)
+            .map((link) => (
+              <tr key={link.id}>
+                <td style={{ overflow: 'hidden', wordWrap: 'break-word' }}>
+                  <a href={link.url}>{`${link.url.slice(0, 50)}${link.url.split('').length > 50 ? '...' : ''}`}</a>
+                </td>
+                <td style={{ overflow: 'hidden', wordWrap: 'break-word' }}>
+                  <Link href={`${window.location.origin}/${link.slug}`}>
+                    <a rel='norefferer' target='_blank'>
+                      {window.location.origin}/{link.slug}
+                    </a>
+                  </Link>
+                </td>
+                <td>{getDate(link.createdAt)}</td>
+                <td>
+                  <ActionIcon variant='transparent' onClick={() => handleRemove(link.id)}>
+                    <IoClose />
+                  </ActionIcon>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </Table>
-      <Pagination pt='1rem' page={currentPage} onChange={handlePageChange} total={total} />
+      <Pagination sx={{ minHeight: '10%' }} page={currentPage} onChange={handlePageChange} total={total} />
     </>
   )
 }

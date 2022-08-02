@@ -1,11 +1,16 @@
-import { Box, Button, Input, Popover, Text, Title, Tooltip } from '@mantine/core'
+import { ActionIcon, Box, Button, Input, Radio, Title, Tooltip } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import type { NextPage } from 'next'
 import { useSession } from 'next-auth/react'
 import { useState } from 'react'
+import { CgSidebarOpen } from 'react-icons/cg'
+import { IoClose } from 'react-icons/io5'
 import Header from '../components/Header/Header'
-import LinksTable from '../components/LinksTable/LinksTable'
 import fetcher from '../services/fetcher'
+import dynamic from 'next/dynamic'
+import { checkValidUrl } from '../services/checkValidUrl'
+
+const LinksTable = dynamic(() => import('../components/LinksTable/LinksTable'), { ssr: true })
 
 export type LinkType = {
   createdAt: string
@@ -19,17 +24,25 @@ const Home: NextPage = () => {
   const largeScreen = useMediaQuery('(min-width: 1024px)', false)
   const { data: session, status } = useSession()
   const [url, setUrl] = useState('')
+  const [error, setError] = useState(false)
   const [shortenedUrl, setShortenedUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [links, setLinks] = useState<Array<LinkType>>([])
   const [opened, setOpened] = useState(false)
 
+
   const handleSubmit = async () => {
-    setIsLoading(true)
-    const response = await fetcher(`/create-url`, { url })
-    setIsLoading(false)
-    setLinks((state) => [...state, response]) // add response link to array of links
-    setShortenedUrl(`${window.location.origin}/${response.slug}`)
+    if (checkValidUrl(url)) {
+      setIsLoading(true)
+      const response = await fetcher(`/create-url`, { url })
+      setIsLoading(false)
+      setLinks((state) => [...state, response]) // add response link to array of links
+      setShortenedUrl(`${window.location.origin}/${response.slug}`)
+    } else {
+      setError(true)
+    }
+
+    setError(false)
   }
 
   const handleCopy = async (e: any) => {
@@ -44,7 +57,6 @@ const Home: NextPage = () => {
   return (
     <Box sx={{ width: '100vw', height: '100vh', backgroundColor: '#ebeff3' }}>
       <Header />
-
       <Box
         sx={{
           height: 'calc(100% - 50px)',
@@ -54,36 +66,86 @@ const Home: NextPage = () => {
           justifyContent: 'center',
           flexDirection: 'column',
         }}>
-        <Title sx={{ color: '#00a7ca' }} order={1}>
-          Shorten your link:
-        </Title>
-        <Box sx={{ fontSize: '1.8rem', display: 'flex', flexDirection: 'column', width: 'clamp(400px, 80vw, 700px)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', padding: '0.5rem' }}>
-            <Input
-              placeholder='Input your url...'
-              onChange={(e: any) => setUrl(e.target.value)}
-              sx={{ width: '70%', border: 0, padding: '1rem', borderRadius: '5px' }}
-            />
+        <Box
+          sx={{
+            height: '40%',
+            fontSize: '1.8rem',
+            display: 'flex',
+            flexDirection: 'column',
+            width: 'clamp(300px, 80vw, 700px)',
+          }}>
+          <Title sx={{ color: '#00a7ca' }} order={1}>
+            Shorten your link:
+          </Title>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.5rem',
+              flexDirection: largeScreen ? 'row' : 'column',
+            }}>
+            <Tooltip
+              label='Invalid url. Add http/https or change url.'
+              opened={error ? true : false}
+              position='bottom-start'
+              withArrow>
+              <Input
+                placeholder='Input your url...'
+                onChange={(e: any) => {
+                  setUrl(e.target.value)
+                }}
+                sx={{ width: '90%', border: 0, borderRadius: '5px' }}
+                value={url}
+                rightSection={
+                  url && (
+                    <ActionIcon onClick={() => setUrl('')}>
+                      <IoClose size={18} style={{ display: 'block', opacity: 0.5 }} />
+                    </ActionIcon>
+                  )
+                }
+              />
+            </Tooltip>
+
             <Button
               loading={isLoading}
               onClick={handleSubmit}
               size={largeScreen ? 'md' : 'xs'}
               ml='1rem'
-              sx={{ width: '20%' }}>
+              sx={{ width: largeScreen ? '20%' : '30%' }}>
               Shorten!
             </Button>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', padding: '0.5rem' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.5rem',
+              width: 'clamp(300px, 80vw, 700px)',
+              flexDirection: largeScreen ? 'row' : 'column',
+            }}>
             <Input
               placeholder='Your shortened url'
               readOnly
               defaultValue={shortenedUrl}
-              sx={{ width: '70%', border: 0, padding: '1rem', borderRadius: '5px' }}
+              sx={{ width: '90%', border: 0, borderRadius: '5px' }}
+              rightSection={
+                shortenedUrl && (
+                  <Tooltip label='Open in a new tab' position='bottom-end' withArrow>
+                    <ActionIcon onClick={() => window.open(shortenedUrl, '_blank')?.focus()}>
+                      <CgSidebarOpen size={18} style={{ display: 'block', opacity: 0.5 }} />
+                    </ActionIcon>
+                  </Tooltip>
+                )
+              }
             />
 
             <Tooltip opened={opened} label='URL copied'>
-              <Button size={largeScreen ? 'md' : 'xs'} ml='1rem' onClick={handleCopy} sx={{ width: '20%' }}>
+              <Button
+                size={largeScreen ? 'md' : 'xs'}
+                ml='1rem'
+                onClick={handleCopy}
+                sx={{ width: largeScreen ? '20%' : '30%' }}>
                 Copy
               </Button>
             </Tooltip>
@@ -92,10 +154,9 @@ const Home: NextPage = () => {
 
         <Box
           sx={{
-            height: '40%',
+            height: '100%',
             display: 'flex',
-            width: `${largeScreen ? '60%' : '100%'}`,
-            marginTop: `${largeScreen ? '5rem' : '10rem'}`,
+            width: `${largeScreen ? '70%' : '100%'}`,
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
