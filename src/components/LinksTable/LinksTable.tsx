@@ -42,7 +42,7 @@ const LinksTable = ({ links, setLinks }: { links: LinkType[]; setLinks: any }) =
       <Table
         sx={{
           height: '80%',
-          width: '100%',
+          width: '90%',
           tableLayout: 'fixed',
           backgroundColor: 'white',
           borderRadius: '5px',
